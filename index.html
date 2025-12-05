@@ -158,7 +158,7 @@
       // Update the PDF link with the experiment ID
       const infoLink = document.getElementById('info-link');
       if (experimentId) {
-        infoLink.href = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/Untitled+document.pdf`;
+        infoLink.href = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/consent_form.pdf`;
       } else {
         infoLink.textContent = 'Error: No experiment ID found. Cannot display experiment information.';
         infoLink.removeAttribute('href');
