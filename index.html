@@ -174,9 +174,6 @@
 
       // Validate participant ID
       async function validateParticipantId() {
-        console.log('DEBUG: Experiment ID:', experimentId);
-        console.log('DEBUG: Participant ID:', participantId);
-
         if (!experimentId || !participantId) {
           showError('Invalid link: Missing experiment ID or participant ID. Please check your link and try again.');
           return;
@@ -185,11 +182,9 @@
         try {
           // Fetch the participant IDs CSV file from S3
           const participantIdsUrl = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/participant_ids.csv`;
-          console.log('DEBUG: Fetching from URL:', participantIdsUrl);
           const response = await fetch(participantIdsUrl);
 
           if (!response.ok) {
-            console.log('DEBUG: Fetch failed with status:', response.status);
             if (response.status === 404) {
               showError('Experiment configuration not found. Please contact the experiment administrator.');
             } else {
@@ -200,7 +195,6 @@
 
           // Parse the CSV file
           const csvText = await response.text();
-          console.log('DEBUG: CSV content:', csvText);
           const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
           // Extract participant IDs from the CSV (first column, skip header)
@@ -212,10 +206,6 @@
             }
           }
 
-          console.log('DEBUG: Valid participant IDs:', validParticipantIds);
-          console.log('DEBUG: Checking if', participantId, 'is in the list');
-          console.log('DEBUG: Is valid?', validParticipantIds.includes(participantId));
-
           // Check if the participant ID is valid
           if (!validParticipantIds.includes(participantId)) {
             showError('Invalid participant ID. This link is not valid. Please check your link or contact the experiment administrator.');
@@ -223,7 +213,6 @@
           }
 
           // If validation passes, enable the start button
-          console.log('DEBUG: Validation passed! Enabling start button.');
           startButton.style.pointerEvents = 'auto';
           startButton.style.opacity = '1';
         } catch (error) {
