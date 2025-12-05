@@ -171,6 +171,79 @@
       if (experimentId && participantId) {
         startButton.href = `${currentHref}?${experimentId}&${participantId}`;
       }
+
+      // Validate participant ID
+      async function validateParticipantId() {
+        if (!experimentId || !participantId) {
+          showError('Invalid link: Missing experiment ID or participant ID. Please check your link and try again.');
+          return;
+        }
+
+        try {
+          // Fetch the participant IDs CSV file from S3
+          const participantIdsUrl = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/participant_ids.csv`;
+          const response = await fetch(participantIdsUrl);
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              showError('Experiment configuration not found. Please contact the experiment administrator.');
+            } else {
+              showError(`Failed to validate participant ID (Error ${response.status}). Please try again later.`);
+            }
+            return;
+          }
+
+          // Parse the CSV file
+          const csvText = await response.text();
+          const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+          // Extract participant IDs from the CSV (first column, skip header)
+          const validParticipantIds = [];
+          for (let i = 1; i < lines.length; i++) {
+            const columns = lines[i].split(',');
+            if (columns.length > 0) {
+              validParticipantIds.push(columns[0].trim());
+            }
+          }
+
+          // Check if the participant ID is valid
+          if (!validParticipantIds.includes(participantId)) {
+            showError('Invalid participant ID. This link is not valid. Please check your link or contact the experiment administrator.');
+            return;
+          }
+
+          // If validation passes, enable the start button
+          startButton.style.pointerEvents = 'auto';
+          startButton.style.opacity = '1';
+        } catch (error) {
+          console.error('Validation error:', error);
+          showError('Failed to validate participant ID. Please check your internet connection and try again.');
+        }
+      }
+
+      function showError(message) {
+        // Disable the start button
+        startButton.style.pointerEvents = 'none';
+        startButton.style.opacity = '0.5';
+
+        // Create and display error message
+        const container = document.querySelector('.container');
+        const existingError = container.querySelector('.error-message');
+
+        if (!existingError) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error-message';
+          errorDiv.innerHTML = `<strong>Access Denied</strong><p>${message}</p>`;
+          container.insertBefore(errorDiv, container.firstChild);
+        }
+      }
+
+      // Disable start button initially
+      startButton.style.pointerEvents = 'none';
+      startButton.style.opacity = '0.5';
+
+      // Run validation on page load
+      validateParticipantId();
     </script>
   </body>
 </html>
