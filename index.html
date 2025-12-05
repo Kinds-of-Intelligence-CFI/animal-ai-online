@@ -197,18 +197,26 @@
           const csvText = await response.text();
           const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-          // Extract participant IDs from the CSV (first column, skip header)
-          const validParticipantIds = [];
+          // Extract participant IDs and completion status from the CSV (skip header)
+          const participantData = new Map();
           for (let i = 1; i < lines.length; i++) {
             const columns = lines[i].split(',');
-            if (columns.length > 0) {
-              validParticipantIds.push(columns[0].trim());
+            if (columns.length >= 2) {
+              const id = columns[0].trim();
+              const completed = columns[1].trim().toLowerCase() === 'true';
+              participantData.set(id, completed);
             }
           }
 
           // Check if the participant ID is valid
-          if (!validParticipantIds.includes(participantId)) {
+          if (!participantData.has(participantId)) {
             showError('Invalid participant ID. This link is not valid. Please check your link or contact the experiment administrator.');
+            return;
+          }
+
+          // Check if the participant has already completed the experiment
+          if (participantData.get(participantId)) {
+            showError('You have already completed this experiment. Thank you for your participation!');
             return;
           }
 
