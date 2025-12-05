@@ -212,9 +212,16 @@
             return;
           }
 
-          // If validation passes, enable the start button
+          // If validation passes, enable the start button and all links
           startButton.style.pointerEvents = 'auto';
           startButton.style.opacity = '1';
+
+          const allLinks = document.querySelectorAll('a');
+          allLinks.forEach(link => {
+            link.style.pointerEvents = 'auto';
+            link.style.opacity = '1';
+            link.style.cursor = 'pointer';
+          });
         } catch (error) {
           console.error('Validation error:', error);
           showError('Failed to validate participant ID. Please check your internet connection and try again.');
@@ -225,6 +232,14 @@
         // Disable the start button
         startButton.style.pointerEvents = 'none';
         startButton.style.opacity = '0.5';
+
+        // Disable all links on the page
+        const allLinks = document.querySelectorAll('a');
+        allLinks.forEach(link => {
+          link.style.pointerEvents = 'none';
+          link.style.opacity = '0.5';
+          link.style.cursor = 'not-allowed';
+        });
 
         // Create and display error message
         const container = document.querySelector('.container');
@@ -238,9 +253,15 @@
         }
       }
 
-      // Disable start button initially
+      // Disable start button and all links initially
       startButton.style.pointerEvents = 'none';
       startButton.style.opacity = '0.5';
+
+      const allLinks = document.querySelectorAll('a');
+      allLinks.forEach(link => {
+        link.style.pointerEvents = 'none';
+        link.style.opacity = '0.5';
+      });
 
       // Run validation on page load
       validateParticipantId();
