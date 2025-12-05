@@ -195,18 +195,26 @@
 
           // Parse the CSV file
           const csvText = await response.text();
+          console.log('DEBUG: CSV content:', csvText);
           const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+          console.log('DEBUG: CSV lines after split:', lines);
 
           // Extract participant IDs and completion status from the CSV (skip header)
           const participantData = new Map();
           for (let i = 1; i < lines.length; i++) {
             const columns = lines[i].split(',');
+            console.log(`DEBUG: Line ${i} columns:`, columns);
             if (columns.length >= 2) {
               const id = columns[0].trim();
               const completed = columns[1].trim().toLowerCase() === 'true';
+              console.log(`DEBUG: Parsed - ID: "${id}", Completed: ${completed}, Raw value: "${columns[1].trim()}"`);
               participantData.set(id, completed);
             }
           }
+
+          console.log('DEBUG: Participant data map:', Array.from(participantData.entries()));
+          console.log('DEBUG: Looking for participant ID:', participantId);
+          console.log('DEBUG: Has participant ID?', participantData.has(participantId));
 
           // Check if the participant ID is valid
           if (!participantData.has(participantId)) {
@@ -214,11 +222,15 @@
             return;
           }
 
+          console.log('DEBUG: Participant found! Completion status:', participantData.get(participantId));
+
           // Check if the participant has already completed the experiment
           if (participantData.get(participantId)) {
             showError('You have already completed this experiment. Thank you for your participation!');
             return;
           }
+
+          console.log('DEBUG: Validation passed! Participant has not completed the experiment.');
 
           // If validation passes, enable the start button and all links
           startButton.style.pointerEvents = 'auto';
