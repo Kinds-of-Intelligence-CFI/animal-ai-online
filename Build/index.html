@@ -135,6 +135,23 @@
         if (event.data && event.data.type === 'experiment_complete') {
           console.log('Received experiment completion notification from Unity');
 
+          // Hide the Unity canvas and game UI immediately
+          document.getElementById('unity-canvas').style.display = 'none';
+          document.getElementById('unity-footer').style.display = 'none';
+
+          // Replace the container content with a thank you message
+          var container = document.getElementById('unity-container');
+          container.style.display = 'flex';
+          container.style.alignItems = 'center';
+          container.style.justifyContent = 'center';
+          container.style.backgroundColor = '#231F20';
+
+          container.innerHTML = '<div style="text-align: center; color: white; font-family: Arial, sans-serif;">' +
+            '<h1 style="font-size: 2.5em; margin-bottom: 20px;">Thank You!</h1>' +
+            '<p style="font-size: 1.2em;">Your experiment is complete.</p>' +
+            '<p style="font-size: 1em; margin-top: 20px;">Redirecting...</p>' +
+            '</div>';
+
           // Extract experiment and participant IDs from URL
           const urlParams = new URLSearchParams(window.location.search);
           const params = Array.from(urlParams.keys());
