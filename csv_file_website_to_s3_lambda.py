@@ -41,6 +41,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         csv_data: Optional[str] = event.get('csv_data')
         encoding: str = event.get('encoding', 'plain')  # 'plain' or 'base64'
         session_id: str = event.get('session_id', generate_session_id())
+        experiment_id: str = event.get('experiment_id')
         user_id: str = event.get('user_id')
         
         if not csv_data:
@@ -64,7 +65,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Generate S3 key with timestamp and session
         # TODO: Find the experiment ID for user_id and put the user in it
-        s3_key: str = f"{user_id}/{session_id}.csv"
+        s3_key: str = f"{experiment_id}/{user_id}/{session_id}.csv"
         
         # Upload to S3
         try:
