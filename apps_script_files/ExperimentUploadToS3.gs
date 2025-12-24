@@ -49,6 +49,9 @@ function onExperimentCreateFormSubmit(e) {
   uploadToS3(configS3Key, experiment_config_blob, scriptProperties);
   Logger.log(`Successfully uploaded file: ${configS3Key} to S3 bucket ${S3_BUCKET_NAME}.`);
 
+  deleteFileFromDriveUrl(fileUploadURL);
+  Logger.log(`Deleted config file from Drive: ${fileUploadURL}`);
+
   // 5. Get and Upload the Consent Form (New Logic)
   const consentFormQuestion = "Please upload the consent form for your experiment";
   const consentFormIndex = headers.indexOf(consentFormQuestion);
@@ -65,6 +68,9 @@ function onExperimentCreateFormSubmit(e) {
       
       uploadToS3(consentS3Key, consentBlob, scriptProperties);
       Logger.log(`Successfully uploaded consent form: ${consentS3Key}`);
+
+      deleteFileFromDriveUrl(consentFormURL);
+      Logger.log(`Deleted consent form from Drive: ${consentFormURL}`);
     } else {
       Logger.log("No consent form URL found in the response.");
     }
@@ -114,4 +120,24 @@ function getBlobFromDriveUrl(driveUrl) {
   
   // 3. Get the blob (content)
   return driveFile.getBlob();
+}
+
+/**
+ * Extracts the file ID from a URL and moves the file to the Trash.
+ * @param {string} driveUrl The Google Drive URL.
+ */
+function deleteFileFromDriveUrl(driveUrl) {
+  try {
+    const idMatch = driveUrl.match(/[-\w]{25,}/);
+    if (idMatch) {
+      const fileId = idMatch[0];
+      DriveApp.getFileById(fileId).setTrashed(true);
+    } else {
+      Logger.log("Could not extract ID for deletion from: " + driveUrl);
+    }
+  } catch (e) {
+    // We catch errors here so that if deletion fails, the script doesn't crash
+    // (since the important part—uploading to S3—is already done).
+    Logger.log("Error deleting file: " + e.message);
+  }
 }
