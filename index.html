@@ -241,7 +241,7 @@
 
         try {
           // Fetch the participant IDs CSV file from S3
-          const participantIdsUrl = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/participant_ids.csv`;
+          const participantIdsUrl = `https://animal-ai-website-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/participant_ids.csv`;
           const response = await fetch(participantIdsUrl);
 
           if (!response.ok) {
