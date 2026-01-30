@@ -198,7 +198,7 @@
       // Update the consent PDF link with the experiment ID
       const consentLink = document.getElementById('consent-link');
       if (experimentId) {
-        consentLink.href = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/consent_form.pdf`;
+        consentLink.href = `https://animal-ai-website-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/consent_form.pdf`;
       } else {
         consentLink.textContent = 'consent form (error: no experiment ID found)';
         consentLink.removeAttribute('href');
