@@ -240,43 +240,36 @@
         }
 
         try {
-          // Fetch the participant IDs CSV file from S3
-          const participantIdsUrl = `https://test-experiment-data-storage.s3.eu-north-1.amazonaws.com/${encodeURIComponent(experimentId)}/participant_ids.csv`;
-          const response = await fetch(participantIdsUrl);
+          // Call the lifecycle lambda to validate the participant ID
+          const lambdaUrl = 'https://ijxyyr92x3.execute-api.eu-north-1.amazonaws.com/test/telemetry';
+          const response = await fetch(lambdaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ experiment_id: experimentId, user_id: participantId })
+          });
 
           if (!response.ok) {
-            if (response.status === 404) {
-              showError('Experiment configuration not found. Please contact the experiment administrator.');
-            } else {
-              showError(`Failed to validate participant ID (Error ${response.status}). Please try again later.`);
-            }
+            showError(`Failed to validate participant ID (Error ${response.status}). Please try again later.`);
             return;
           }
 
-          // Parse the CSV file
-          const csvText = await response.text();
-          const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+          // Parse the two-level response envelope (matches Lambda/API Gateway format)
+          const outerJson = await response.json();
 
-          // Extract participant IDs and completion status from the CSV (skip header)
-          const participantData = new Map();
-          for (let i = 1; i < lines.length; i++) {
-            const columns = lines[i].split(',');
-            if (columns.length >= 2) {
-              const id = columns[0].trim();
-              const completed = columns[1].trim().toLowerCase() === 'true';
-              participantData.set(id, completed);
-            }
+          if (outerJson.statusCode !== 200) {
+            showError(`Failed to validate participant ID (Error ${outerJson.statusCode}). Please try again later.`);
+            return;
           }
 
-          // Check if the participant ID is valid
-          if (!participantData.has(participantId)) {
+          const innerJson = JSON.parse(outerJson.body);
+
+          if (innerJson.lifecycle_state === 'NOT_CREATED') {
             showError('Invalid participant ID. This link is not valid. Please check your link or contact the experiment administrator.');
             return;
           }
 
-          // Check if the participant has already completed the experiment
-          if (participantData.get(participantId)) {
-            showError('You have already completed this experiment. Thank you for your participation!');
+          if (innerJson.lifecycle_state === 'COMPLETED') {
+            showAlreadyCompleted();
             return;
           }
 
@@ -296,6 +289,20 @@
           console.error('Validation error:', error);
           showError('Failed to validate participant ID. Please check your internet connection and try again.');
         }
+      }
+
+      function showAlreadyCompleted() {
+        const completionUrl = `completion.html?experiment_id=${encodeURIComponent(experimentId)}&participant_id=${encodeURIComponent(participantId)}`;
+
+        const container = document.querySelector('.container');
+        container.innerHTML = `
+          <h1>Thank You!</h1>
+          <p class="subtitle">You have already completed this experiment.</p>
+          <div class="description">
+            <p>Your responses have already been recorded. You will be redirected to the completion page shortly.</p>
+          </div>`;
+
+        setTimeout(() => { window.location.href = completionUrl; }, 1500);
       }
 
       function showError(message) {
