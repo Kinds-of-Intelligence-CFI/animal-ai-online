@@ -6,8 +6,36 @@
     <title>Unity Web Player | Animal-AI Tutorial</title>
     <link rel="shortcut icon" href="Build/TemplateData/favicon.ico">
     <link rel="stylesheet" href="Build/TemplateData/style.css">
+    <script src="config.js"></script>
     <style>
-      #tutorial-modal-overlay {
+      #btn-show-instructions {
+        clear: both;
+        display: block;
+        margin: 6px auto 0;
+        padding: 6px 20px;
+        border-radius: 50px;
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: transform 0.15s, box-shadow 0.15s;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      #btn-show-instructions:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      #btn-show-instructions:active {
+        transform: translateY(0);
+      }
+
+      /* Shared overlay style for both modals */
+      .modal-overlay {
         display: none;
         position: fixed;
         inset: 0;
@@ -17,15 +45,15 @@
         justify-content: center;
       }
 
-      #tutorial-modal-overlay.visible {
+      .modal-overlay.visible {
         display: flex;
       }
 
-      #tutorial-modal {
+      /* Shared modal panel */
+      .modal-panel {
         background: white;
         border-radius: 12px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        max-width: 460px;
         width: 90%;
         padding: 50px 40px;
         text-align: center;
@@ -38,7 +66,7 @@
         to   { opacity: 1; transform: translateY(0); }
       }
 
-      #tutorial-modal .modal-icon {
+      .modal-icon {
         width: 80px;
         height: 80px;
         margin: 0 auto 24px;
@@ -49,13 +77,13 @@
         justify-content: center;
       }
 
-      #tutorial-modal h2 {
+      .modal-panel h2 {
         font-size: 2rem;
         color: #667eea;
         margin-bottom: 12px;
       }
 
-      #tutorial-modal p {
+      .modal-panel p {
         font-size: 1rem;
         color: #666;
         margin-bottom: 32px;
@@ -79,15 +107,11 @@
         border: none;
         transition: transform 0.15s, box-shadow 0.15s;
         text-decoration: none;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
 
-      .modal-btn:hover {
-        transform: translateY(-2px);
-      }
-
-      .modal-btn:active {
-        transform: translateY(0);
-      }
+      .modal-btn:hover { transform: translateY(-2px); }
+      .modal-btn:active { transform: translateY(0); }
 
       .modal-btn-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -109,6 +133,27 @@
         box-shadow: 0 0 0 2px #764ba2 inset;
         color: #764ba2;
       }
+
+      /* Instructions-specific: wider panel, left-aligned text body */
+      #instructions-modal {
+        max-width: 600px;
+      }
+
+      #instructions-text {
+        text-align: left;
+        font-size: 1rem;
+        color: #444;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        margin-bottom: 32px;
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+
+      /* Completion modal */
+      #completion-modal {
+        max-width: 460px;
+      }
     </style>
   </head>
   <body>
@@ -125,12 +170,24 @@
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">Animal-AI Tutorial</div>
+        <button id="btn-show-instructions">Show Tutorial Instructions</button>
+      </div>
+    </div>
+
+    <!-- Instructions modal (shown before the tutorial starts) -->
+    <div id="instructions-overlay" class="modal-overlay visible">
+      <div id="instructions-modal" class="modal-panel">
+        <h2>Tutorial Instructions</h2>
+        <div id="instructions-text">Loading instructions...</div>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-primary" id="btn-start-tutorial">Start Tutorial</button>
+        </div>
       </div>
     </div>
 
     <!-- Tutorial completion modal -->
-    <div id="tutorial-modal-overlay">
-      <div id="tutorial-modal">
+    <div id="completion-overlay" class="modal-overlay">
+      <div id="completion-modal" class="modal-panel">
         <div class="modal-icon">
           <svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:white;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -186,24 +243,26 @@
       canvas.style.width = "960px";
       canvas.style.height = "600px";
 
-      document.querySelector("#unity-loading-bar").style.display = "block";
+      function loadUnity() {
+        document.querySelector("#unity-loading-bar").style.display = "block";
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          document.querySelector("#unity-loading-bar").style.display = "none";
-          document.querySelector("#unity-fullscreen-button").onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
-      };
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            document.querySelector("#unity-loading-bar").style.display = "none";
+            document.querySelector("#unity-fullscreen-button").onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }).catch((message) => {
+            alert(message);
+          });
+        };
 
-      document.body.appendChild(script);
+        document.body.appendChild(script);
+      }
 
       // Extract URL parameters so they can be forwarded to the experiment page
       const urlParams = new URLSearchParams(window.location.search);
@@ -217,7 +276,43 @@
         experimentUrl += '?' + experimentId + '&' + participantId;
       }
 
-      // Wire up modal buttons
+      // Load tutorial instructions from S3 and populate the modal
+      const s3Base = CONFIG.S3_BASE_URL;
+      const instructionsUrl = `${s3Base}/${encodeURIComponent(experimentId)}/tutorial_instructions.txt`;
+
+      fetch(instructionsUrl)
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to load instructions');
+          return response.text();
+        })
+        .then(text => {
+          document.getElementById('instructions-text').textContent = text;
+        })
+        .catch(() => {
+          document.getElementById('instructions-text').textContent =
+            'No instructions available. Click "Start Tutorial" to begin.';
+        });
+
+      // Dismiss instructions modal and start the tutorial
+      function showInstructions() {
+        document.getElementById('instructions-overlay').classList.add('visible');
+      }
+
+      function hideInstructions() {
+        document.getElementById('instructions-overlay').classList.remove('visible');
+      }
+
+      var unityLoaded = false;
+      document.getElementById('btn-start-tutorial').addEventListener('click', function() {
+        hideInstructions();
+        if (!unityLoaded) {
+          unityLoaded = true;
+          loadUnity();
+        }
+      });
+      document.getElementById('btn-show-instructions').addEventListener('click', showInstructions);
+
+      // Completion modal buttons
       document.getElementById('btn-retry').addEventListener('click', function() {
         window.location.reload();
       });
@@ -232,7 +327,7 @@
 
         if (event.data && event.data.type === 'experiment_complete') {
           console.log('Tutorial complete — showing retry/continue modal');
-          document.getElementById('tutorial-modal-overlay').classList.add('visible');
+          document.getElementById('completion-overlay').classList.add('visible');
         }
       });
     </script>
