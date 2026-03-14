@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Animal-AI Tutorial</title>
+    <link rel="shortcut icon" href="Build/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="Build/TemplateData/style.css">
+    <style>
+      #tutorial-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #tutorial-modal-overlay.visible {
+        display: flex;
+      }
+
+      #tutorial-modal {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        max-width: 460px;
+        width: 90%;
+        padding: 50px 40px;
+        text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        animation: modalFadeIn 0.25s ease-out;
+      }
+
+      @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      #tutorial-modal .modal-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #tutorial-modal h2 {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 12px;
+      }
+
+      #tutorial-modal p {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 32px;
+        line-height: 1.6;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .modal-btn {
+        display: inline-block;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+        text-decoration: none;
+      }
+
+      .modal-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .modal-btn:active {
+        transform: translateY(0);
+      }
+
+      .modal-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .modal-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      .modal-btn-secondary {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 0 0 2px #667eea inset;
+      }
+
+      .modal-btn-secondary:hover {
+        box-shadow: 0 0 0 2px #764ba2 inset;
+        color: #764ba2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Animal-AI Tutorial</div>
+      </div>
+    </div>
+
+    <!-- Tutorial completion modal -->
+    <div id="tutorial-modal-overlay">
+      <div id="tutorial-modal">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" style="width:44px;height:44px;stroke:white;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2>Tutorial Complete!</h2>
+        <p>Would you like to try the tutorial again, or continue to the main experiment?</p>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-secondary" id="btn-retry">Try Again</button>
+          <button class="modal-btn modal-btn-primary" id="btn-continue">Continue to Experiment</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      // tutorial.html lives in Web/, one level above Build/index.html,
+      // so Unity build files are under Build/Build/ relative to here.
+      var buildUrl = "Build/Build";
+      var loaderUrl = buildUrl + "/Build.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/Build.data",
+        frameworkUrl: buildUrl + "/Build.framework.js",
+        codeUrl: buildUrl + "/Build.wasm",
+        streamingAssetsUrl: "Build/StreamingAssets",
+        companyName: "CFI",
+        productName: "Animal-AI",
+        productVersion: "4.3.0",
+        showBanner: unityShowBanner,
+      };
+
+      canvas.style.width = "960px";
+      canvas.style.height = "600px";
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+
+      document.body.appendChild(script);
+
+      // Extract URL parameters so they can be forwarded to the experiment page
+      const urlParams = new URLSearchParams(window.location.search);
+      const params = Array.from(urlParams.keys());
+      const experimentId = params[0] || '';
+      const participantId = params[1] || '';
+
+      // Build the experiment page URL (same parameters, different page)
+      let experimentUrl = 'Build/index.html';
+      if (experimentId && participantId) {
+        experimentUrl += '?' + experimentId + '&' + participantId;
+      }
+
+      // Wire up modal buttons
+      document.getElementById('btn-retry').addEventListener('click', function() {
+        window.location.reload();
+      });
+
+      document.getElementById('btn-continue').addEventListener('click', function() {
+        window.location.href = experimentUrl;
+      });
+
+      // Listen for the completion signal from Unity and show the popup instead of redirecting
+      window.addEventListener('message', function(event) {
+        console.log('Received message:', event.data);
+
+        if (event.data && event.data.type === 'experiment_complete') {
+          console.log('Tutorial complete — showing retry/continue modal');
+          document.getElementById('tutorial-modal-overlay').classList.add('visible');
+        }
+      });
+    </script>
+  </body>
+</html>
