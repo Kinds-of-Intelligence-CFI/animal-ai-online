@@ -274,6 +274,15 @@
             return;
           }
 
+          // If the participant has completed at least one level, skip the tutorial
+          if (innerJson.attempted_arenas && innerJson.attempted_arenas.length > 0) {
+            let experimentUrl = 'Build/index.html';
+            if (experimentId && participantId) {
+              experimentUrl += `?${experimentId}&${participantId}`;
+            }
+            startButton.href = experimentUrl;
+          }
+
           // If validation passes, enable links and update start button based on consent
           validationPassed = true;
 
