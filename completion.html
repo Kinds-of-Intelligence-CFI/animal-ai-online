@@ -209,7 +209,7 @@
         </p>
       </div>
 
-      <div class="feedback-box">
+      <div class="feedback-box" id="feedback-box">
         <h3>Share your feedback</h3>
         <textarea id="feedback-text" placeholder="Please share any thoughts on your experience, or leave this blank if you have nothing to add."></textarea>
         <br>
@@ -248,7 +248,7 @@
 
           const outerJson = await response.json();
           if (response.ok && outerJson.statusCode === 200) {
-            button.textContent = 'Feedback submitted!';
+            document.getElementById('feedback-box').remove();
           } else {
             throw new Error('Upload failed');
           }
