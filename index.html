@@ -242,7 +242,7 @@
 
         try {
           // Call the lifecycle lambda to validate the participant ID
-          const lambdaUrl = 'https://ijxyyr92x3.execute-api.eu-north-1.amazonaws.com/test/telemetry';
+          const lambdaUrl = CONFIG.LAMBDA_URL;
           const response = await fetch(lambdaUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

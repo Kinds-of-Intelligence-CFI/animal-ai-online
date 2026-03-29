@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Experiment Complete - Animal-AI</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <script src="config.js"></script>
     <style>
       * {
         margin: 0;
@@ -99,7 +100,7 @@
         margin-bottom: 15px;
       }
 
-      .info-box {
+      .feedback-box {
         background-color: #f8f9fa;
         border-radius: 8px;
         padding: 20px;
@@ -108,15 +109,51 @@
         text-align: left;
       }
 
-      .info-box h3 {
+      .feedback-box h3 {
         color: #667eea;
         margin-bottom: 10px;
         font-size: 1.1rem;
       }
 
-      .info-box p {
-        margin: 0;
-        color: #555;
+      .feedback-box textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        resize: vertical;
+        box-sizing: border-box;
+        margin-top: 8px;
+      }
+
+      .feedback-box textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .submit-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 28px;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 12px;
+        transition: opacity 0.2s;
+      }
+
+      .submit-button:hover {
+        opacity: 0.9;
+      }
+
+      .submit-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       .contact-info {
@@ -165,33 +202,18 @@
       </div>
 
       <h1>Thank You!</h1>
-      <p class="subtitle">Experiment Completed Successfully</p>
 
       <div class="message">
         <p>
-          Thank you for participating in this Animal-AI research study. Your contribution
-          is valuable to our understanding of cognition and decision-making.
-        </p>
-        <p>
-          Your responses have been automatically saved and uploaded.
+          Thank you for participating in this Animal-AI research study. Your responses have been automatically saved and uploaded.
         </p>
       </div>
 
-      <div class="info-box">
-        <h3>What happens next?</h3>
-        <p>
-          Your data will be analyzed as part of our research. All data is stored securely
-          and handled in accordance with our data protection policies.
-        </p>
-      </div>
-
-      <div class="info-box">
-        <h3>Questions or concerns?</h3>
-        <p>
-          If you have any questions about this study or would like to withdraw your data,
-          please contact the research team using the information provided in your
-          participant information sheet.
-        </p>
+      <div class="feedback-box">
+        <h3>Share your feedback</h3>
+        <textarea id="feedback-text" placeholder="Please share any thoughts on your experience, or leave this blank if you have nothing to add."></textarea>
+        <br>
+        <button class="submit-button" id="submit-button" onclick="submitFeedback()">Submit feedback</button>
       </div>
 
       <div class="contact-info">
@@ -200,22 +222,41 @@
     </div>
 
     <script>
-      // Extract participant ID from URL to potentially customize the message
       const urlParams = new URLSearchParams(window.location.search);
       const experimentId = urlParams.get('experiment_id') || '';
       const participantId = urlParams.get('participant_id') || '';
 
-      // Log completion for analytics if needed
-      if (experimentId && participantId) {
-        console.log('Experiment completed:', {
-          experimentId: experimentId,
-          participantId: participantId,
-          timestamp: new Date().toISOString()
-        });
+      async function submitFeedback() {
+        const button = document.getElementById('submit-button');
+        const text = document.getElementById('feedback-text').value.trim();
 
-        // Optional: You could call an API here to mark the participant as completed
-        // For example:
-        // markParticipantComplete(experimentId, participantId);
+        button.disabled = true;
+        button.textContent = 'Submitting...';
+
+        try {
+          const lambdaUrl = CONFIG.LAMBDA_URL;
+          const response = await fetch(lambdaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file_data: text || '(no feedback provided)',
+              file_type: 'txt',
+              experiment_id: experimentId,
+              user_id: participantId
+            })
+          });
+
+          const outerJson = await response.json();
+          if (response.ok && outerJson.statusCode === 200) {
+            button.textContent = 'Feedback submitted!';
+          } else {
+            throw new Error('Upload failed');
+          }
+        } catch (error) {
+          console.error('Feedback submission error:', error);
+          button.disabled = false;
+          button.textContent = 'Submission failed — please try again';
+        }
       }
     </script>
   </body>
