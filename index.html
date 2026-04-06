@@ -242,7 +242,7 @@
 
         try {
           // Call the lifecycle lambda to validate the participant ID
-          const lambdaUrl = CONFIG.LAMBDA_URL;
+          const lambdaUrl = CONFIG.LIFECYCLE_LAMBDA_URL;
           const response = await fetch(lambdaUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
