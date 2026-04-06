@@ -233,10 +233,14 @@
         }
       }
 
+      function invalidLinkError(code) {
+        showError(`Invalid link: Please check your link and try again. If the issue persists, please contact the researcher who provided you with this link and quote the error code ${code}.`);
+      }
+
       // Validate participant ID
       async function validateParticipantId() {
         if (!experimentId || !participantId) {
-          showError('Invalid link: Missing experiment ID or participant ID. Please check your link and try again.');
+          invalidLinkError('E942');
           return;
         }
 
@@ -250,7 +254,7 @@
           });
 
           if (!response.ok) {
-            showError(`Failed to validate participant ID (Error ${response.status}). Please try again later.`);
+            invalidLinkError('E943');
             return;
           }
 
@@ -258,14 +262,14 @@
           const outerJson = await response.json();
 
           if (outerJson.statusCode !== 200) {
-            showError(`Failed to validate participant ID (Error ${outerJson.statusCode}). Please try again later.`);
+            invalidLinkError('E943');
             return;
           }
 
           const innerJson = JSON.parse(outerJson.body);
 
           if (innerJson.lifecycle_state === 'NOT_CREATED') {
-            showError('Invalid participant ID. This link is not valid. Please check your link or contact the experiment administrator.');
+            invalidLinkError('E944');
             return;
           }
 
@@ -297,7 +301,7 @@
           updateStartButtonState();
         } catch (error) {
           console.error('Validation error:', error);
-          showError('Failed to validate participant ID. Please check your internet connection and try again.');
+          invalidLinkError('E945');
         }
       }
 
