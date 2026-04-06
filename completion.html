@@ -234,7 +234,7 @@
         button.textContent = 'Submitting...';
 
         try {
-          const lambdaUrl = CONFIG.LAMBDA_URL;
+          const lambdaUrl = CONFIG.FEEDBACK_UPLOAD_LABMDA_URL;
           const response = await fetch(lambdaUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
