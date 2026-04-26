@@ -215,6 +215,22 @@
         text-decoration: underline;
       }
 
+      .error-message {
+        background-color: #fee;
+        border: 2px solid #fcc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #c33;
+        text-align: left;
+      }
+
+      .error-message strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+
       @media (max-width: 600px) {
         .container {
           padding: 30px 20px;
@@ -280,6 +296,13 @@
           const outerJson = await response.json();
           if (outerJson.statusCode !== 200) return;
           const innerJson = JSON.parse(outerJson.body);
+          if (innerJson.lifecycle_state === 'IN_PROGRESS') {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = '<strong>Incomplete session</strong><p>We were unable to find a complete record of your session - please report this to whoever provided you with an experiment link.</p>';
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.parentNode.insertBefore(errorDiv, feedbackBox);
+          }
           if (innerJson.prolific_completion_url) {
             document.getElementById('prolific-link').href = innerJson.prolific_completion_url;
             document.getElementById('prolific-box').style.display = 'block';
